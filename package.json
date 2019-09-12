@@ -1,0 +1,32 @@
+{
+  "name": "img-compression-webpack-plugin",
+  "version": "1.0.0",
+  "description": "img compression.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "compression",
+    "webpack-plugin"
+  ],
+  "author": "xiejiahe",
+  "license": "MIT",
+  "dependencies": {
+    "bytes": "^3.1.0",
+    "chalk": "^2.4.2",
+    "cli-table": "^0.3.1",
+    "fs-extra": "^8.1.0",
+    "ora": "^3.4.0",
+    "tinify": "^1.6.0-beta.2"
+  },
+  "typings": "./index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xjh22222228/img-compression-webpack-plugin.git"
+  },
+  "bugs": {
+    "url": "https://github.com/xjh22222228/img-compression-webpack-plugin/issues"
+  },
+  "homepage": "https://github.com/xjh22222228/img-compression-webpack-plugin#readme"
+}
