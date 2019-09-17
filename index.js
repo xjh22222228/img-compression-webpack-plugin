@@ -1,26 +1,19 @@
 const tinify = require('tinify');
-const fs = require('fs-extra');
+const fs = require('fs');
 const path = require('path');
 const chalk = require('chalk');
 const bytes = require('bytes');
 const ora = require('ora');
 const Table = require('cli-table');
+const Datastore = require('nedb');
 
+const db = new Datastore({ filename: path.join(__dirname, 'data.db'), autoload: true });
 const supportExtnames = ['.png', '.jpg', '.jpeg'];
 const excludeDir = ['node_modules'];
 
 class ImgCompressionWebpackPlugin {
   constructor(options = {}) {
     tinify.key = options.key;
-  }
-
-  /**
-   * @param {String} path 
-   * @returns {Number}
-   */
-  getFileSize(path) {
-    const stat = fs.statSync(path);
-    return stat.size;
   }
 
   getImgPathAll(dirPath = process.cwd()) {
@@ -51,13 +44,14 @@ class ImgCompressionWebpackPlugin {
   startCompress(surplusCompressionCount = 0) {
     return new Promise(async (resolve) => {
       let imgDataAll = this.getImgPathAll().map(abPath => {
-        const size = bytes(this.getFileSize(abPath));
+        const stat = fs.statSync(abPath);
+        const bytesSize = bytes(stat.size);
         abPath = {
           path: abPath,
           relativePath: path.relative(process.cwd(), abPath),
-          byte: this.getFileSize(abPath),
-          size: size,
-          compressed: size
+          byte: stat.size,
+          size: bytesSize,
+          compressed: bytesSize
         };
         return abPath;
       });
@@ -72,18 +66,27 @@ class ImgCompressionWebpackPlugin {
       for (let i = 0; i < imgDataAll.length; i++) {
         const _5mb = 1024 * 1024 * 5;
         const p = imgDataAll[i].path;
+        let stat = fs.statSync(p);
+        const findOneResult = new Promise((resolve, reject) => {
+          db.findOne({ path: p, size: stat.size }, function (err, doc) {
+            if (err) return reject(err);
+            resolve(doc);
+          });
+        });
+        const doc = await findOneResult;
+
         if (i >= surplusCompressionCount) break;
         if (imgDataAll[i].byte >= _5mb) continue;
+        if (doc) continue;
 
         spinner.text = `[${i + 1}/${imgDataAll.length}] ${imgDataAll[i].relativePath}`;
         
         const result = new Promise((resolve, reject) => {
           tinify.fromFile(p).toFile(p, (err) => {
-            if (err) {
-              reject(err);
-              throw Error(err);
-            }
-            imgDataAll[i].compressed = bytes(this.getFileSize(p));
+            let { size } = fs.statSync(p);
+            if (err) return reject(err);
+            imgDataAll[i].compressed = bytes(size);
+            db.insert({ path: p, size });
             resolve();
           });
         });
