@@ -12,7 +12,11 @@ const supportExtnames = ['.png', '.jpg', '.jpeg'];
 const excludeDir = ['node_modules'];
 
 class ImgCompressionWebpackPlugin {
-  constructor(options = {}) {
+  constructor(options) {
+    options = {
+      key: 'g42bcJDlmLG8HhGgxcZV79zTRq6mH8G6',
+      ...options
+    };
     tinify.key = options.key;
   }
 
